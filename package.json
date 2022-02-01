@@ -3,13 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "engines": {
-    "node": ">= 7.6.0"
+    "node": ">= 14.x"
   },
   "now": {
-    "dotenv": "variables.env.now"
+    "dotenv": "variables.env.no"
   },
   "scripts": {
     "start": "node ./start.js",
+    "build": "webpack",
     "watch": "nodemon ./start.js --ignore public/",
     "dev": "concurrently \"npm run watch\" \"npm run assets\" --names \"💻,📦\" --prefix name",
     "assets": "webpack -w --display-max-modules 0",

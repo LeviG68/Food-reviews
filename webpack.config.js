@@ -6,6 +6,8 @@ const path = require('path');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const autoprefixer = require('autoprefixer');
+const env = require("dotenv").config({ path: "variables.env" });
+const nodeEnv = process.env.NODE_ENV || env.parsed.NODE_ENV;
 /*
   webpack sees every file as a module.
   How to handle those files is up to loaders.
