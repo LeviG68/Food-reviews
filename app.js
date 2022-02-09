@@ -1,33 +1,33 @@
-const express = require('express');
-const session = require('express-session');
-const mongoose = require('mongoose');
+import express, { static } from 'express';
+import session from 'express-session';
+import { connection } from 'mongoose';
 const MongoStore = require('connect-mongo')(session);
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
-const passport = require('passport');
-const promisify = require('es6-promisify');
-const flash = require('connect-flash');
-const expressValidator = require('express-validator');
-const routes = require('./routes/index');
-const helpers = require('./helpers');
-const errorHandlers = require('./handlers/errorHandlers');
-require('./handlers/passport');
+import { join } from 'path';
+import cookieParser from 'cookie-parser';
+import { json, urlencoded } from 'body-parser';
+import { initialize, session as _session } from 'passport';
+import promisify from 'es6-promisify';
+import flash from 'connect-flash';
+import expressValidator from 'express-validator';
+import routes from './routes/index';
+import helpers from './helpers';
+import { notFound, flashValidationErrors, developmentErrors, productionErrors } from './handlers/errorHandlers';
+import './handlers/passport';
 
 
 // create our Express app
 const app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views')); // this is the folder where we keep our pug files
+app.set('views', join(__dirname, 'views')); // this is the folder where we keep our pug files
 app.set('view engine', 'pug'); // we use the engine pug, mustache or EJS work great too
 
 // serves up static files from the public folder. Anything in public/ will just be served up as the file it is
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(static(join(__dirname, 'public')));
 
 // Takes the raw requests and turns them into usable properties on req.body
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(json());
+app.use(urlencoded({ extended: true }));
 
 // Exposes a bunch of methods for validating data. Used heavily on userController.validateRegister
 app.use(expressValidator());
@@ -42,12 +42,12 @@ app.use(session({
   key: process.env.KEY,
   resave: false,
   saveUninitialized: false,
-  store: new MongoStore({ mongooseConnection: mongoose.connection })
+  store: new MongoStore({ mongooseConnection: connection })
 }));
 
 // // Passport JS is what we use to handle our logins
-app.use(passport.initialize());
-app.use(passport.session());
+app.use(initialize());
+app.use(_session());
 
 // // The flash middleware let's us use req.flash('error', 'Shit!'), which will then pass that message to the next page the user requests
 app.use(flash());
@@ -71,19 +71,19 @@ app.use((req, res, next) => {
 app.use('/', routes);
 
 // If that above routes didnt work, we 404 them and forward to error handler
-app.use(errorHandlers.notFound);
+app.use(notFound);
 
 // One of our error handlers will see if these errors are just validation errors
-app.use(errorHandlers.flashValidationErrors);
+app.use(flashValidationErrors);
 
 // Otherwise this was a really bad error we didn't expect! Shoot eh
 if (app.get('env') === 'development') {
   /* Development Error Handler - Prints stack trace */
-  app.use(errorHandlers.developmentErrors);
+  app.use(developmentErrors);
 }
 
 // production error handler
-app.use(errorHandlers.productionErrors);
+app.use(productionErrors);
 
 // done! we export it so we can start the site in start.js
-module.exports = app;
+export default app;
